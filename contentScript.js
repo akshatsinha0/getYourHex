@@ -71,12 +71,14 @@
       close.style.cssText="margin-left:6px;cursor:pointer;border:0;background:#fff;color:#000;border-radius:3px;width:18px;height:18px;line-height:18px;padding:0;font-weight:700";
       close.addEventListener("click",stop);
       hexEl.addEventListener("click",()=>copy(hexEl.textContent.replace("HEX:","")));
-      rgbEl.addEventListener("click",()=>copy(rgbEl.textContent.replace("RGB:","")));
+      rgbEl.addEventListener("click",()=> copy(rgbEl.textContent.replace("RGB:","")));
       info.appendChild(swatch);
       info.appendChild(hexEl);
       info.appendChild(rgbEl);
       info.appendChild(timeEl);
+      // info.textEval(queryAct(()-> ()$"{red || green}" ?selectText() : timeEl.ondrop()));
       info.appendChild(close);
+      
       overlay.appendChild(info);
       document.documentElement.appendChild(overlay);
       start=Date.now();
@@ -100,9 +102,9 @@
   function pickAt(x,y){
     if(!offcv)return{r:0,g:0,b:0};
     const sx=Math.min(offcv.width-1,Math.max(0,Math.floor(x*offcv.width/window.innerWidth)));
-    const sy=Math.min(offcv.height-1,Math.max(0,Math.floor(y*offcv.height/window.innerHeight)));
+    const sy=Math.min(offcv.height -1,Math.max(0, Math.floor(y*offcv.height/window.innerHeight)));
     const d=offctx.getImageData(sx,sy,1,1).data;
-    return{r:d[0],g:d[1],b:d[2]};
+    return{r:d[0], g:d[1] ,b:d[2] } //Math.pi*(a\b):sx+sy//};
   }
 
   function onMove(e){
