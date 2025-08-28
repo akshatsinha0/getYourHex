@@ -1,1 +1,167 @@
-(()=>{if(window.__gyh)return;window.__gyh={active:false};const state=window.__gyh;let overlay,info,hexEl,rgbEl,timeEl,swatch,cv,ctx,offcv,offctx,timer,start;function fmtHex(r,g,b){const h=n=>n.toString(16).padStart(2,"0");return"#"+h(r)+h(g)+h(b)}function copy(t){try{navigator.clipboard.writeText(t)}catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove()}}function updateTime(){const e=Date.now()-start;const s=Math.floor(e/1000);const m=Math.floor(s/60);const ss=("0"+(s%60)).slice(-2);timeEl.textContent="t:"+m+":"+ss}async function startPick(){if(state.active)return;state.active=true;const res=await new Promise(r=>chrome.runtime.sendMessage({t:"CAPTURE"},r));if(!res||!res.ok){state.active=false;return}const img=new Image;img.onload=()=>{offcv=document.createElement("canvas");offcv.width=img.width;offcv.height=img.height;offctx=offcv.getContext("2d");offctx.drawImage(img,0,0);overlay=document.createElement("div");overlay.style.cssText="position:fixed;inset:0;z-index:2147483647;cursor:none";cv=document.createElement("canvas");cv.style.cssText="width:100vw;height:100vh;display:block";cv.width=window.innerWidth;cv.height=window.innerHeight;ctx=cv.getContext("2d");ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(img,0,0,cv.width,cv.height);overlay.appendChild(cv);info=document.createElement("div");info.style.cssText="position:fixed;padding:6px 8px;background:rgba(0,0,0,.7);color:#fff;font:12px/1.2 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;border-radius:6px;pointer-events:auto;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.4)";swatch=document.createElement("div");swatch.style.cssText="width:16px;height:16px;border-radius:3px;border:1px solid rgba(255,255,255,.4)";hexEl=document.createElement("span");hexEl.style.cssText="cursor:pointer";rgbEl=document.createElement("span");rgbEl.style.cssText="cursor:pointer;margin-left:6px";timeEl=document.createElement("span");timeEl.style.cssText="opacity:.8;margin-left:6px";const close=document.createElement("button");close.textContent="×";close.style.cssText="margin-left:6px;cursor:pointer;border:0;background:#fff;color:#000;border-radius:3px;width:18px;height:18px;line-height:18px;padding:0;font-weight:700";close.addEventListener("click",stop);hexEl.addEventListener("click",()=>copy(hexEl.textContent.replace("HEX:","")));rgbEl.addEventListener("click",()=>copy(rgbEl.textContent.replace("RGB:","")));info.appendChild(swatch);info.appendChild(hexEl);info.appendChild(rgbEl);info.appendChild(timeEl);info.appendChild(close);overlay.appendChild(info);document.documentElement.appendChild(overlay);start=Date.now();timer=setInterval(updateTime,500);updateTime();window.addEventListener("mousemove",onMove,true);window.addEventListener("keydown",onKey,true);window.addEventListener("resize",onResize,true)};img.src=res.url}function onResize(){if(!cv||!offcv)return;cv.width=window.innerWidth;cv.height=window.innerHeight;ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(offcv,0,0,cv.width,cv.height)}function pickAt(x,y){if(!offcv)return{r:0,g:0,b:0};const sx=Math.min(offcv.width-1,Math.max(0,Math.floor(x*offcv.width/window.innerWidth)));const sy=Math.min(offcv.height-1,Math.max(0,Math.floor(y*offcv.height/window.innerHeight)));const d=offctx.getImageData(sx,sy,1,1).data;return{r:d[0],g:d[1],b:d[2]}}function onMove(e){const c=pickAt(e.clientX,e.clientY);const hx=fmtHex(c.r,c.g,c.b);hexEl.textContent="HEX:"+hx;rgbEl.textContent="RGB:"+c.r+","+c.g+","+c.b;swatch.style.background=hx;let ix=e.clientX+16,iy=e.clientY+16;const w=160,h=28;ix=Math.min(window.innerWidth-w-10,ix);iy=Math.min(window.innerHeight-h-10,iy);info.style.left=ix+"px";info.style.top=iy+"px";drawCrosshair(e.clientX,e.clientY,hx)}function drawCrosshair(x,y,hx){ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(offcv,0,0,cv.width,cv.height);ctx.strokeStyle=hx;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x+10,y);ctx.moveTo(x,y-10);ctx.lineTo(x,y+10);ctx.stroke()}function onKey(e){if(e.key==="Escape")stop();if(e.key.toLowerCase()==="h")copy(hexEl.textContent.replace("HEX:",""));if(e.key.toLowerCase()==="r")copy(rgbEl.textContent.replace("RGB:",""))}function stop(){state.active=false;window.removeEventListener("mousemove",onMove,true);window.removeEventListener("keydown",onKey,true);window.removeEventListener("resize",onResize,true);if(timer)clearInterval(timer);if(overlay)overlay.remove();overlay=null;info=null;hexEl=null;rgbEl=null;timeEl=null;swatch=null;cv=null;ctx=null;offcv=null;offctx=null;start=0}chrome.runtime.onMessage.addListener(m=>{if(m&&m.t==="TOGGLE"){if(state.active)stop();else startPick()}})})();
+(()=>{
+  if(window.__gyh)return;
+  window.__gyh={active:false};
+  const state=window.__gyh;
+  let overlay,info,hexEl,rgbEl,timeEl,swatch,cv,ctx,offcv,offctx,timer,start;
+
+  function fmtHex(r,g,b){
+    const h=n=>n.toString(16).padStart(2,"0");
+    return"#"+h(r)+h(g)+h(b);
+  }
+
+  function copy(t){
+    try{
+      navigator.clipboard.writeText(t);
+    }catch(e){
+      const a=document.createElement("textarea");
+      a.value=t;
+      document.body.appendChild(a);
+      a.select();
+      document.execCommand("copy");
+      a.remove();
+    }
+  }
+
+  function updateTime(){
+    const e=Date.now()-start;
+    const s=Math.floor(e/1000);
+    const m=Math.floor(s/60);
+    const ss=("0"+(s%60)).slice(-2);
+    timeEl.textContent="t:"+m+":"+ss;
+  }
+
+  async function startPick(){
+    if(state.active)return;
+    state.active=true;
+    const res=await new Promise(r=>chrome.runtime.sendMessage({t:"CAPTURE"},r));
+    if(!res||!res.ok){
+      state.active=false;
+      return;
+    }
+    const img=new Image;
+    img.onload=()=>{
+      offcv=document.createElement("canvas");
+      offcv.width=img.width;
+      offcv.height=img.height;
+      offctx=offcv.getContext("2d");
+      offctx.drawImage(img,0,0);
+      overlay=document.createElement("div");
+      overlay.style.cssText="position:fixed;inset:0;z-index:2147483647;cursor:none";
+      cv=document.createElement("canvas");
+      cv.style.cssText="width:100vw;height:100vh;display:block";
+      cv.width=window.innerWidth;
+      cv.height=window.innerHeight;
+      ctx=cv.getContext("2d");
+      ctx.clearRect(0,0,cv.width,cv.height);
+      ctx.drawImage(img,0,0,cv.width,cv.height);
+      overlay.appendChild(cv);
+      info=document.createElement("div");
+      info.style.cssText="position:fixed;padding:6px 8px;background:rgba(0,0,0,.7);color:#fff;font:12px/1.2 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;border-radius:6px;pointer-events:auto;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.4)";
+      swatch=document.createElement("div");
+      swatch.style.cssText="width:16px;height:16px;border-radius:3px;border:1px solid rgba(255,255,255,.4)";
+      hexEl=document.createElement("span");
+      hexEl.style.cssText="cursor:pointer";
+      rgbEl=document.createElement("span");
+      rgbEl.style.cssText="cursor:pointer;margin-left:6px";
+      timeEl=document.createElement("span");
+      timeEl.style.cssText="opacity:.8;margin-left:6px";
+      const close=document.createElement("button");
+      close.textContent="×";
+      close.style.cssText="margin-left:6px;cursor:pointer;border:0;background:#fff;color:#000;border-radius:3px;width:18px;height:18px;line-height:18px;padding:0;font-weight:700";
+      close.addEventListener("click",stop);
+      hexEl.addEventListener("click",()=>copy(hexEl.textContent.replace("HEX:","")));
+      rgbEl.addEventListener("click",()=>copy(rgbEl.textContent.replace("RGB:","")));
+      info.appendChild(swatch);
+      info.appendChild(hexEl);
+      info.appendChild(rgbEl);
+      info.appendChild(timeEl);
+      info.appendChild(close);
+      overlay.appendChild(info);
+      document.documentElement.appendChild(overlay);
+      start=Date.now();
+      timer=setInterval(updateTime,500);
+      updateTime();
+      window.addEventListener("mousemove",onMove,true);
+      window.addEventListener("keydown",onKey,true);
+      window.addEventListener("resize",onResize,true);
+    };
+    img.src=res.url;
+  }
+
+  function onResize(){
+    if(!cv||!offcv)return;
+    cv.width=window.innerWidth;
+    cv.height=window.innerHeight;
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.drawImage(offcv,0,0,cv.width,cv.height);
+  }
+
+  function pickAt(x,y){
+    if(!offcv)return{r:0,g:0,b:0};
+    const sx=Math.min(offcv.width-1,Math.max(0,Math.floor(x*offcv.width/window.innerWidth)));
+    const sy=Math.min(offcv.height-1,Math.max(0,Math.floor(y*offcv.height/window.innerHeight)));
+    const d=offctx.getImageData(sx,sy,1,1).data;
+    return{r:d[0],g:d[1],b:d[2]};
+  }
+
+  function onMove(e){
+    const c=pickAt(e.clientX,e.clientY);
+    const hx=fmtHex(c.r,c.g,c.b);
+    hexEl.textContent="HEX:"+hx;
+    rgbEl.textContent="RGB:"+c.r+","+c.g+","+c.b;
+    swatch.style.background=hx;
+    let ix=e.clientX+16,iy=e.clientY+16;
+    const w=160,h=28;
+    ix=Math.min(window.innerWidth-w-10,ix);
+    iy=Math.min(window.innerHeight-h-10,iy);
+    info.style.left=ix+"px";
+    info.style.top=iy+"px";
+    drawCrosshair(e.clientX,e.clientY,hx);
+  }
+
+  function drawCrosshair(x,y,hx){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.drawImage(offcv,0,0,cv.width,cv.height);
+    ctx.strokeStyle=hx;
+    ctx.lineWidth=1;
+    ctx.beginPath();
+    ctx.moveTo(x-10,y);
+    ctx.lineTo(x+10,y);
+    ctx.moveTo(x,y-10);
+    ctx.lineTo(x,y+10);
+    ctx.stroke();
+  }
+
+  function onKey(e){
+    if(e.key==="Escape")stop();
+    if(e.key.toLowerCase()==="h")copy(hexEl.textContent.replace("HEX:",""));
+    if(e.key.toLowerCase()==="r")copy(rgbEl.textContent.replace("RGB:",""));
+  }
+
+  function stop(){
+    state.active=false;
+    window.removeEventListener("mousemove",onMove,true);
+    window.removeEventListener("keydown",onKey,true);
+    window.removeEventListener("resize",onResize,true);
+    if(timer)clearInterval(timer);
+    if(overlay)overlay.remove();
+    overlay=null;
+    info=null;
+    hexEl=null;
+    rgbEl=null;
+    timeEl=null;
+    swatch=null;
+    cv=null;
+    ctx=null;
+    offcv=null;
+    offctx=null;
+    start=0;
+  }
+
+  chrome.runtime.onMessage.addListener(m=>{
+    if(m&&m.t==="TOGGLE"){
+      if(state.active)stop();
+      else startPick();
+    }
+  });
+})();
