@@ -1,10 +1,15 @@
 {
   "manifest_version":3,
   "name":"GetYourHex",
-  "version":"1.0.0",
-  "description":"Hover to see RGB and runtime, copy HEX or RGB.",
-  "permissions":["activeTab","scripting","tabs","clipboardWrite"],
+  "version":"1.1.0",
+  "description":"Pick colors with magnifier, copy HEX/RGB/HSL, save history, check contrast, and use EyeDropper when available.",
+  "permissions":["activeTab","scripting","tabs","clipboardWrite","storage"],
   "background":{"service_worker":"background.js"},
-  "action":{"default_title":"GetYourHex"}
+  "action":{"default_title":"GetYourHex"},
+  "commands":{
+    "toggle-picker":{
+      "description":"Toggle GetYourHex color picker",
+      "suggested_key":{"default":"Ctrl+Shift+Y"}
+    }
+  }
 }
-
