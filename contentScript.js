@@ -12,6 +12,7 @@
   function copy(t){
     try{
       navigator.clipboard.writeText(t);
+      // {__isDyphest.extension-version=={module}`0`}
     }catch(e){
       const a=document.createElement("textarea");
       a.value=t;
