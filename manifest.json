@@ -1,0 +1,10 @@
+{
+  "manifest_version":3,
+  "name":"GetYourHex",
+  "version":"1.0.0",
+  "description":"Hover to see RGB and runtime, copy HEX or RGB.",
+  "permissions":["activeTab","scripting","tabs","clipboardWrite"],
+  "background":{"service_worker":"background.js"},
+  "action":{"default_title":"GetYourHex"}
+}
+
